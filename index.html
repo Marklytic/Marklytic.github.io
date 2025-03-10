@@ -393,6 +393,21 @@
             position: relative;
         }
 
+        /* 添加FAQ答案样式 */
+        .faq-answer {
+            font-size: 13px;
+            padding: 0 0 8px 28px;
+            color: var(--text-color);
+            opacity: 0.8;
+            display: none;
+            line-height: 1.5;
+            border-bottom: 1px solid rgba(var(--text-color-rgb), 0.1);
+        }
+
+        .faq-answer.active {
+            display: block;
+        }
+
         .faq-item::before {
             content: counter(faq-counter) ".";
             counter-increment: faq-counter;
@@ -510,14 +525,63 @@
                     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Switch to dark mode"></button>
                 </div>
                 <ol class="faq-list">
-                    <li class="faq-item"><a href="#markdown-syntax">How to use Markdown syntax?</a></li>
-                <li class="faq-item"><a href="#export-word">How to export to Word?</a></li>
-                <li class="faq-item"><a href="#save-history">How to save history?</a></li>
-                <li class="faq-item"><a href="#shortcuts">What shortcuts are supported?</a></li>
-                <li class="faq-item"><a href="#dark-mode">How to toggle dark mode?</a></li>
-                <li class="faq-item"><a href="#ai-content">How to handle AI-generated content?</a></li>
-                <li class="faq-item"><a href="#batch-convert">How to batch convert documents?</a></li>
-                <li class="faq-item"><a href="#custom-style">How to customize output style?</a></li>
+                    <li class="faq-item">
+                        <a href="#markdown-syntax">How to use Markdown syntax?</a>
+                        <div class="faq-answer">
+                            Markdown is a lightweight markup language. Common syntax:<br>
+                            - Headings: Use # (1-6)<br>
+                            - Bold: Use **text**<br>
+                            - Italic: Use *text*<br>
+                            - Links: [text](URL)<br>
+                            - Images: ![alt text](image URL)<br>
+                            - Lists: Use - or 1.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <a href="#export-word">How to export to Word?</a>
+                        <div class="faq-answer">
+                            Click the "Download As Word" button in the bottom right corner to export the current content as a Word document. Supports basic text formatting, including headings, paragraphs, and lists.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <a href="#save-history">How to save history?</a>
+                        <div class="faq-answer">
+                            The system automatically saves your editing history. After each edit, the content is automatically saved to local storage. You can view and manage all saved documents in the history panel on the left.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <a href="#shortcuts">What shortcuts are supported?</a>
+                        <div class="faq-answer">
+                            Currently supported shortcuts:<br>
+                            - Ctrl/Cmd + S: Save document<br>
+                            - Ctrl/Cmd + V: Paste content<br>
+                            - Ctrl/Cmd + D: Toggle dark mode
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <a href="#dark-mode">How to toggle dark mode?</a>
+                        <div class="faq-answer">
+                            Click the toggle button in the FAQ title bar, or use the shortcut Ctrl/Cmd + D to switch between dark/light modes. Your preference will be saved.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <a href="#ai-content">How to handle AI-generated content?</a>
+                        <div class="faq-answer">
+                            Simply copy content from ChatGPT, Grok, DeepSeek, or other AI tools and paste it into the input box. The system will automatically process the format and convert it into a standardized Markdown document.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <a href="#batch-convert">How to batch convert documents?</a>
+                        <div class="faq-answer">
+                            Batch conversion is not currently supported. You can create multiple documents and convert them individually. We plan to add batch conversion in a future release.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <a href="#custom-style">How to customize output style?</a>
+                        <div class="faq-answer">
+                            Currently using GitHub Markdown style. You can customize the color theme by modifying CSS variables. More style options and customization features will be available in future versions.
+                        </div>
+                    </li>
                 </ol>
             </div>
 
@@ -674,6 +738,15 @@
         // 初始化主题
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // 添加 FAQ 交互
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const answer = item.querySelector('.faq-answer');
+                answer.classList.toggle('active');
+            });
+        });
     </script>
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1H6GG3Y8GV"></script>

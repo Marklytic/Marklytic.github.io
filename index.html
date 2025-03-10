@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marklytic - Transform Markdown to Beautiful Documents</title>
+    <meta name="description" content="Marklytic is a powerful tool that converts Markdown text into beautifully formatted HTML and DOCX documents. Perfect for creating documentation, meeting notes, and technical writings. Easily transform content from ChatGPT, Grok, Gemini, and DeepSeek into well-formatted documents.">
+    <meta name="keywords" content="markdown converter, document converter, markdown to html, markdown to docx, markdown editor, document formatting, markdown tool, chatgpt to document, grok to html, gemini to word, deepseek converter, ai content formatter">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <style>
+        /* :root {
+            --panel-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e5e5e5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --panel-bg: #1a1a1a;
+                --text-color: #ffffff;
+                --border-color: #333333;
+            }
+        } */
+
+        /* 在:root中添加RGB变量 */
+        :root {
+            --panel-bg: #ffffff;
+            --text-color: #333333;
+            --text-color-rgb: 51, 51, 51;
+            --border-color: #e5e5e5;
+        }
+
+        :root[data-theme="dark"] {
+            --panel-bg: #1a1a1a;
+            --text-color: #ffffff;
+            --text-color-rgb: 255, 255, 255;
+            --border-color: #333333;
+        }
+
+        /* 删除原有的 @media 暗色模式样式 
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --panel-bg: #1a1a1a;
+                --text-color: #ffffff;
+                --text-color-rgb: 255, 255, 255;
+                --border-color: #333333;
+            }
+        }*/
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-color);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: min(220px, 20%) minmax(0, 1fr) minmax(0, 1fr);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 修改左栏布局 */
+        .left-panel {
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+
+        .history-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 0; /* 解决 flex 布局下的滚动问题 */
+            overflow: hidden;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0; /* 解决 flex 布局下的滚动问题 */
+        }
+
+        .history-add-button {
+            /* padding: 8px 16px; */
+            background: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .add-button {
+            display: block;
+            width: 100%;
+            padding: 4px 0;
+            text-align: center;
+            font-size: small;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        .add-button:hover {
+            opacity: 1;
+        }
+
+        .faq-section {
+            flex: none;  /* 增加flex比例 */
+            height:200px;
+            overflow-y: auto;
+            padding: 0 16px;
+            min-height: 0; /* 解决 flex 布局下的滚动问题 */
+        }
+
+        .middle-panel, .right-panel {
+            background: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            position: relative;
+        }
+
+        .action-buttons {
+            /* position: absolute;
+            left:0;
+            right:0;
+            bottom: 0; */
+            padding: 6px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            background: var(--panel-bg);
+        }
+
+        .action-button {
+            padding: 6px 12px;
+            border-radius: 16px;
+            border: 1.5px solid rgba(var(--text-color-rgb), 0.2);
+            background: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.8;
+        }
+
+        .action-button:hover {
+            opacity: 1;
+            border-color: rgba(var(--text-color-rgb), 0.4);
+            background: rgba(var(--text-color-rgb), 0.05);
+        }
+        .middle-panel {
+            border-right: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .input-area {
+            width: 100%;
+            flex: 1;
+            border: none;
+            background: none;
+            resize: none;
+            color: var(--text-color);
+            padding: 20px;  /* 增加底部内边距 */
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .markdown-body {
+            flex: 1;
+            padding: 20px;  /* 增加底部内边距 */
+            line-height: 1.6;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .paste-button-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .paste-button {
+            padding: 6px 12px;
+            border-radius: 16px;
+            border: 1.5px solid rgba(var(--text-color-rgb), 0.6);
+            background: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .paste-button:hover {
+            background: var(--text-color);
+            color: var(--panel-bg);
+        }
+
+        .content {
+            padding: 20px;
+        }
+        
+        /* 新增样式 */
+        .empty-state {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-button {
+            background: none;
+            border:none;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-button:hover {
+            background: var(--text-color);
+            color: var(--panel-bg);
+        }
+
+        .history-list {
+            list-style: none;
+        }
+
+        .history-item {
+            padding: 12px 32px 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+        .history-item.active {
+            background: rgba(var(--text-color-rgb), 0.1);
+        }
+        .history-title {
+            font-size: 13px;
+            margin-bottom: 4px;
+            color: var(--text-color);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-break: break-all;
+            cursor: pointer;
+        }
+
+        .history-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .delete-button {
+            position: absolute;
+            right: 8px;  /* 靠右边距离改小 */
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 1px solid #ff4d4f;  /* 改为红色边框 */
+            border-radius: 50%;
+            color: #ff4d4f;  /* 改为红色图标 */
+            opacity: 0.5;
+            cursor: pointer;
+            padding: 3px;  /* 内边距改小 */
+            width: 20px;  /* 宽度改小 */
+            height: 20px;  /* 高度改小 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .delete-button:hover {
+            opacity: 1;
+            background-color: #ff4d4f;  /* 改为红色背景 */
+            color: var(--panel-bg);
+        }
+
+        .delete-button svg {
+            width: 14px;  /* 图标改小 */
+            height: 14px;
+        }
+
+        .history-subtitle {
+            font-size: 12px;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        /* .delete-button {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 1px solid var(--text-color);
+            border-radius: 50%;
+            color: var(--text-color);
+            opacity: 0.5;
+            cursor: pointer;
+            padding: 4px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        } 
+
+        .delete-button:hover {
+            opacity: 1;
+            background-color: var(--text-color);
+            color: var(--panel-bg);
+        }*/
+
+        .faq-list {
+            list-style: none;
+            counter-reset: faq-counter;
+        }
+        .faq-title {
+          padding: 4px 0;
+          font-size:13px;
+          display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .theme-toggle {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            border-radius: 10px;
+            background: rgba(var(--text-color-rgb), 0.2);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        :root[data-theme="dark"] .theme-toggle {
+            background: rgba(var(--text-color-rgb), 0.6);
+        }
+
+        :root[data-theme="dark"] .theme-toggle::before {
+            transform: translateX(14px);
+        }
+        
+        .faq-item {
+            font-size: 13px;
+            padding: 6px 0 6px 28px;
+            color: var(--text-color);
+            opacity: 0.7;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            position: relative;
+        }
+
+        .faq-item::before {
+            content: counter(faq-counter) ".";
+            counter-increment: faq-counter;
+            position: absolute;
+            left: 0;
+            color: var(--text-color);
+            opacity: 0.5;
+            font-size: 13px;
+            width: 20px;
+        }
+        /* 添加链接样式 */
+        .faq-item a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+        }
+
+        .faq-item:hover a {
+            opacity: 1;
+            text-decoration: underline;  /* 添加下划线 */
+        }
+    </style>
+        <!-- 在head中添加marked.js -->
+    
+        <!-- 在 head 中添加 GitHub Markdown CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sindresorhus/github-markdown-css@4.0.0/github-markdown.css">
+    <style>
+        /* 覆盖一些 GitHub Markdown CSS 的样式以适配深色模式 */
+        .markdown-body {
+            color: var(--text-color);
+            background: none;
+            /* height: 100%; */
+            font-size: 14px;  /* 调整基础字号 */
+        }
+
+        .markdown-body h1 { font-size: 1.8em; }
+        .markdown-body h2 { font-size: 1.5em; }
+        .markdown-body h3 { font-size: 1.25em; }
+        .markdown-body h4 { font-size: 1.1em; }
+        .markdown-body h5 { font-size: 1em; }
+        .markdown-body h6 { font-size: 0.9em; }
+        
+        .markdown-body code,
+        .markdown-body pre {
+            font-size: 13px;  /* 调整代码块字号 */
+        }
+
+        .markdown-body pre,
+        .markdown-body code {
+            background-color: rgba(var(--text-color-rgb), 0.1);
+        }
+
+        .markdown-body pre code {
+            background: none;
+        }
+
+        .markdown-body blockquote {
+            color: var(--text-color);
+            opacity: 0.8;
+            border-left-color: var(--border-color);
+        }
+
+        .markdown-body hr {
+            background-color: var(--border-color);
+        }
+
+        .markdown-body table tr {
+            background-color: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .markdown-body table tr:nth-child(2n) {
+            background-color: rgba(var(--text-color-rgb), 0.05);
+        }
+
+        .markdown-body table th,
+        .markdown-body table td {
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="history-section">
+                <!-- 空状态 -->
+                <!-- <div class="empty-state" style="display: none;">
+                    <button class="add-button">+</button>
+                </div> -->
+                
+                <!-- 历史记录列表 -->
+                <ul class="history-list">
+                    <!-- <li class="history-item">
+                        <div class="history-title">会议纪要转换</div>
+                        <div class="history-subtitle">2024-01-21 14:30</div>
+                        <button class="delete-button">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M5 2V1h6v1h4v2H1V2h4zm1 13V5h4v10H6zm-3 0V5H2v10h1zm9 0V5h1v10h-1z"/>
+                            </svg>
+                        </button>
+                    </li> -->
+                </ul>
+
+                <!-- 添加按钮 -->
+                <div class="history-add-button">
+                    <a href="#new" class="add-button">+ New</a>
+                </div>
+            </div>
+
+            <!-- FAQ部分 -->
+            <div class="faq-section">
+                <div class="faq-title">
+                    FAQ
+                    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Switch to dark mode"></button>
+                </div>
+                <ol class="faq-list">
+                    <li class="faq-item"><a href="#markdown-syntax">How to use Markdown syntax?</a></li>
+                <li class="faq-item"><a href="#export-word">How to export to Word?</a></li>
+                <li class="faq-item"><a href="#save-history">How to save history?</a></li>
+                <li class="faq-item"><a href="#shortcuts">What shortcuts are supported?</a></li>
+                <li class="faq-item"><a href="#dark-mode">How to toggle dark mode?</a></li>
+                <li class="faq-item"><a href="#ai-content">How to handle AI-generated content?</a></li>
+                <li class="faq-item"><a href="#batch-convert">How to batch convert documents?</a></li>
+                <li class="faq-item"><a href="#custom-style">How to customize output style?</a></li>
+                </ol>
+            </div>
+
+        
+        </div>
+        <!-- 修改中间面板的内容 -->
+        <div class="middle-panel">
+            <textarea class="input-area" placeholder="Enter content here (Markdown text copied from ChatGPT, Grok, DeepSeek)..."></textarea>
+            <div class="paste-button-container">
+                <button class="paste-button">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M4 2h8v2h2v10H2V4h2V2zm1 1v1h6V3H5zm-2 2v8h10V5H3z"/>
+                    </svg>
+                    Paste
+                </button>
+            </div>
+        </div>
+        <!-- 修改右侧面板内容 -->
+        <div class="right-panel">
+            <div class="markdown-body"></div>
+            <div class="action-buttons">
+                <button class="action-button" id="copyToClip">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M4 2h8v2h2v10H2V4h2V2zm1 1v1h6V3H5zm-2 2v8h10V5H3z"/>
+                    </svg>
+                    Copy to Clipboard
+                </button>
+                <button class="action-button" onclick="downloadAsImage()">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 12l-4-4h2.5V3h3v5H12L8 12zm-6 2h12v-2h1v3H3v-3h1v2z"/>
+                    </svg>
+                    Download As Image
+                </button>
+                <button class="action-button" onclick="downloadAsWord()">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M3 3v10h10V3H3zm9 9H4V4h8v8zM6 7h4v1H6V7zm0 2h4v1H6V9z"/>
+                    </svg>
+                    Download As Word
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- 在body结束标签前添加 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        // 初始化应用
+        const app = new MarkUI();
+
+        // 切换主题
+        function toggleTheme() {
+            const root = document.documentElement;
+            const currentTheme = root.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            root.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+
+        async function downloadAsImage() {
+            try {
+                // 检查是否已加载 html2canvas
+                if (typeof html2canvas === 'undefined') {
+                    await loadScript('https://html2canvas.hertzen.com/dist/html2canvas.min.js');
+                }
+                
+                const content = document.querySelector('.markdown-body');
+                if (!content || !content.innerHTML.trim()) {
+                    alert('没有可导出的内容，请先输入或粘贴 Markdown 文本');
+                    return;
+                }
+                
+                // 创建临时容器
+                const container = document.createElement('div');
+                container.style.padding = '20px';
+                container.style.background = getComputedStyle(document.documentElement).getPropertyValue('--panel-bg');
+                container.appendChild(content.cloneNode(true));
+                document.body.appendChild(container);
+                
+                const canvas = await html2canvas(container, {
+                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--panel-bg'),
+                    scale: 2, // 提高清晰度
+                });
+                
+                // 移除临时容器
+                document.body.removeChild(container);
+                
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = 'markdown-export.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('下载图片失败:', error);
+                alert('下载图片失败，请稍后重试');
+            }
+        }
+
+                // 异步加载 JS 库
+        function loadScript(url) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        async function downloadAsWord() {
+            try {
+                // 检查是否已加载 docx
+                if (typeof docx === 'undefined') {
+                    await loadScript('https://unpkg.com/docx@8.2.3/build/index.umd.js');
+                }
+                
+                const content = document.querySelector('.markdown-body');
+                if (!content || !content.innerHTML.trim()) {
+                    alert('没有可导出的内容，请先输入或粘贴 Markdown 文本');
+                    return;
+                }
+                const doc = new docx.Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: content.innerText,
+                                    }),
+                                ],
+                            }),
+                        ],
+                    }],
+                });
+
+                docx.Packer.toBlob(doc).then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'document.docx';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                });
+            } catch (error) {
+                console.error('下载 Word 文档失败:', error);
+                alert('下载 Word 文档失败，请稍后重试');
+            }
+        }
+
+        // 初始化主题
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1H6GG3Y8GV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-1H6GG3Y8GV');
+</script>
+</body>
+</body></html>
